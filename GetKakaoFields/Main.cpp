@@ -17,7 +17,6 @@ char* statusFormat = "Status> %hu\n";
 char* nameFormat = "Packet> %.10s\n";
 char* bodyTypeFormat = "Body type> %hhx\n";
 char* bodyLengthFormat = "Body length> %d\n";
-char* bodyFormat = "Body> %*.*\n\n";
 
 bool bCompare(const BYTE* pData, const BYTE* bMask, const char* szMask)
 {
@@ -53,6 +52,19 @@ DWORD Hook(LPVOID lpFunction)
 	memcpy(&jmp[1], &dwCalc, 4);
 	WriteProcessMemory(GetCurrentProcess(), (LPVOID)dwAddr, jmp, sizeof(jmp), 0);
 	return dwAddr;
+}
+
+void PrintBodyHex(char* body, int size) {
+
+	printf("Body>");
+
+	int i;
+	for (i = 0; i < size; i++) {
+		printf(" %02hhX", (unsigned char) body[i]);
+	}
+
+	printf("\n\n");
+
 }
 
 void __declspec(naked) Kakao_hook_1()
@@ -92,14 +104,11 @@ void __declspec(naked) Kakao_hook_1()
 		call printf
 		add esp, 8
 
+		push[ebx + 18]
 		add ebx, 22
 		push ebx
 		sub ebx, 22
-		push[ebx + 18]
-		push[ebx + 18]
-		push bodyFormat
-		call printf
-		add esp, 8
+		call PrintBodyHex
 		add esp, 8
 
 		popad
@@ -113,6 +122,7 @@ void __declspec(naked) Kakao_hook_1()
 		jmp[Kakao_return_1]
 	}
 }
+
 void Start()
 {
 	DWORD dwSize = 0x1000000;
